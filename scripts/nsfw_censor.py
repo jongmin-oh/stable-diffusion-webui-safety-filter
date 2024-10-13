@@ -36,6 +36,12 @@ def nsfw_detect(images, threshold=0.5):
     
     return images
 
+
+def apply_nsfw_filter(images, threshold):
+    tensor_images = torch.from_numpy(np.array([np.array(img) for img in images])).permute(0, 3, 1, 2).float()
+    filtered_images = nsfw_detect(tensor_images, threshold)
+    return [Image.fromarray(img.cpu().permute(1, 2, 0).numpy().astype(np.uint8)) for img in filtered_images]
+
 class NsfwCheckScript(scripts.Script):
     def title(self):
         return "NSFW detect"

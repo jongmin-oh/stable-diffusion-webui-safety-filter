@@ -7,6 +7,7 @@ import uvicorn
 import ipaddress
 import requests
 import gradio as gr
+
 from threading import Lock
 from io import BytesIO
 from fastapi import APIRouter, Depends, FastAPI, Request, Response
@@ -32,6 +33,9 @@ import piexif
 import piexif.helper
 from contextlib import closing
 from modules.progress import create_task_id, add_task_to_queue, start_task, finish_task, current_task
+
+# custom
+from scripts.nsfw_censor import apply_nsfw_filter
 
 def script_name_to_index(name, scripts):
     try:
@@ -270,7 +274,6 @@ class Api:
             self.default_script_arg_img2img = self.init_default_script_args(img2img_script_runner)
 
 
-
     def add_api_route(self, path: str, endpoint, **kwargs):
         if shared.cmd_opts.api_auth:
             return self.app.add_api_route(path, endpoint, dependencies=[Depends(self.auth)], **kwargs)
@@ -436,10 +439,14 @@ class Api:
 
         infotext_script_args = {}
         self.apply_infotext(txt2imgreq, "txt2img", script_runner=script_runner, mentioned_script_args=infotext_script_args)
-
+        
         selectable_scripts, selectable_script_idx = self.get_selectable_script(txt2imgreq.script_name, script_runner)
         sampler, scheduler = sd_samplers.get_sampler_and_scheduler(txt2imgreq.sampler_name or txt2imgreq.sampler_index, txt2imgreq.scheduler)
 
+        # NSFW
+        enable_nsfw_detect = txt2imgreq.enable_nsfw_detect
+        threshold = txt2imgreq.nsfw_threshold
+        
         populate = txt2imgreq.copy(update={  # Override __init__ params
             "sampler_name": validate_sampler_name(sampler),
             "do_not_save_samples": not txt2imgreq.save_images,
@@ -456,6 +463,9 @@ class Api:
         args.pop('script_args', None) # will refeed them to the pipeline directly after initializing them
         args.pop('alwayson_scripts', None)
         args.pop('infotext', None)
+        args.pop('enable_nsfw_detect', None)
+        args.pop('nsfw_threshold', None)
+        
 
         script_args = self.init_script_args(txt2imgreq, self.default_script_arg_txt2img, selectable_scripts, selectable_script_idx, script_runner, input_script_args=infotext_script_args)
 
@@ -476,10 +486,15 @@ class Api:
                     start_task(task_id)
                     if selectable_scripts is not None:
                         p.script_args = script_args
-                        processed = scripts.scripts_txt2img.run(p, *p.script_args) # Need to pass args as list here
+                        processed = scripts.scripts_txt2img.run(p, *p.script_args)
                     else:
-                        p.script_args = tuple(script_args) # Need to pass args as tuple here
+                        p.script_args = tuple(script_args)
                         processed = process_images(p)
+
+                    # NSFW 필터 적용
+                    if enable_nsfw_detect:
+                        processed.images = apply_nsfw_filter(processed.images, threshold)
+    
                     finish_task(task_id)
                 finally:
                     shared.state.end()
@@ -508,6 +523,10 @@ class Api:
         selectable_scripts, selectable_script_idx = self.get_selectable_script(img2imgreq.script_name, script_runner)
         sampler, scheduler = sd_samplers.get_sampler_and_scheduler(img2imgreq.sampler_name or img2imgreq.sampler_index, img2imgreq.scheduler)
 
+        # NSFW
+        enable_nsfw_detect = img2imgreq.enable_nsfw_detect
+        threshold = img2imgreq.nsfw_threshold
+        
         populate = img2imgreq.copy(update={  # Override __init__ params
             "sampler_name": validate_sampler_name(sampler),
             "do_not_save_samples": not img2imgreq.save_images,
@@ -526,12 +545,15 @@ class Api:
         args.pop('script_args', None)  # will refeed them to the pipeline directly after initializing them
         args.pop('alwayson_scripts', None)
         args.pop('infotext', None)
+        args.pop('enable_nsfw_detect', None)
+        args.pop('nsfw_threshold', None)
 
         script_args = self.init_script_args(img2imgreq, self.default_script_arg_img2img, selectable_scripts, selectable_script_idx, script_runner, input_script_args=infotext_script_args)
 
         send_images = args.pop('send_images', True)
         args.pop('save_images', None)
 
+        
         add_task_to_queue(task_id)
 
         with self.queue_lock:
@@ -547,10 +569,15 @@ class Api:
                     start_task(task_id)
                     if selectable_scripts is not None:
                         p.script_args = script_args
-                        processed = scripts.scripts_img2img.run(p, *p.script_args) # Need to pass args as list here
+                        processed = scripts.scripts_img2img.run(p, *p.script_args)
                     else:
-                        p.script_args = tuple(script_args) # Need to pass args as tuple here
+                        p.script_args = tuple(script_args)
                         processed = process_images(p)
+
+                    # NSFW 필터 적용
+                    if enable_nsfw_detect:
+                        processed.images = apply_nsfw_filter(processed.images, threshold)
+
                     finish_task(task_id)
                 finally:
                     shared.state.end()
@@ -925,4 +952,3 @@ class Api:
     def stop_webui(request):
         shared.state.server_command = "stop"
         return Response("Stopping.")
-
