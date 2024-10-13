@@ -16,7 +16,7 @@ processor = ViTImageProcessor.from_pretrained(safety_model_id)
 warning_image = os.path.join("extensions", "warning.png")
 
 def nsfw_detect(images, threshold=0.5):
-    pil_images = [Image.fromarray((img.permute(1, 2, 0) * 255).byte().cpu().numpy()) for img in images]
+    pil_images = [Image.fromarray((img.permute(1, 2, 0) * 255).byte().numpy()) for img in images]
     
     with torch.no_grad():
         inputs = processor(images=pil_images, return_tensors="pt")
@@ -24,13 +24,12 @@ def nsfw_detect(images, threshold=0.5):
         logits = outputs.logits
     
     probabilities = F.softmax(logits, dim=1)
-    nsfw_probs = probabilities[:, 1].tolist()  # NSFW 확률만 추출하여 리스트로 변환
+    nsfw_probs = probabilities[:, 1].tolist()
     
     warning_img = Image.open(warning_image).convert("RGB")
     
     for i, prob in enumerate(nsfw_probs):
         if prob > threshold:
-            # NSFW로 판단된 경우 경고 이미지로 대체
             resized_warning = warning_img.resize((images[i].shape[2], images[i].shape[1]))
             images[i] = torch.from_numpy(np.array(resized_warning)).permute(2, 0, 1).float() / 255.0
     
@@ -38,9 +37,9 @@ def nsfw_detect(images, threshold=0.5):
 
 
 def apply_nsfw_filter(images, threshold):
-    tensor_images = torch.from_numpy(np.array([np.array(img) for img in images])).permute(0, 3, 1, 2).float()
+    tensor_images = torch.stack([torch.from_numpy(np.array(img)).permute(2, 0, 1).float() for img in images])
     filtered_images = nsfw_detect(tensor_images, threshold)
-    return [Image.fromarray(img.cpu().permute(1, 2, 0).numpy().astype(np.uint8)) for img in filtered_images]
+    return [Image.fromarray(img.permute(1, 2, 0).numpy().astype(np.uint8)) for img in filtered_images]
 
 class NsfwCheckScript(scripts.Script):
     def title(self):
