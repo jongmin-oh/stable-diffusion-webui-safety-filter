@@ -30,12 +30,9 @@ def nsfw_detect(images, threshold=0.5):
     
     for i, prob in enumerate(nsfw_probs):
         if prob > threshold:
-            print(f"Image {i} censored")  # 디버깅용 출력
             # NSFW로 판단된 경우 경고 이미지로 대체
             resized_warning = warning_img.resize((images[i].shape[2], images[i].shape[1]))
             images[i] = torch.from_numpy(np.array(resized_warning)).permute(2, 0, 1).float() / 255.0
-        else:
-            print(f"Image {i} not censored")  # 디버깅용 출력
     
     return images
 
@@ -50,10 +47,7 @@ class NsfwCheckScript(scripts.Script):
         images = kwargs['images']
         if args[0] is True:
             threshold = float(args[1])  # threshold를 float로 명시적 변환
-            print(f"NSFW detection enabled. Threshold: {threshold}")  # 디버깅용 출력
             images[:] = nsfw_detect(images, threshold)
-        else:
-            print("NSFW detection disabled")  # 디버깅용 출력
 
     def ui(self, is_img2img):
         enable_nsfw_detect = gr.Checkbox(label='Enable NSFW detect',

@@ -47,6 +47,16 @@ else
 fi
 
 # Embeddings
+if [ ! -f "embeddings/ng_deepnegative_v1_75t.pt" ]; then
+    curl -L -o "embeddings/ng_deepnegative_v1_75t.pt" "https://huggingface.co/j5ng/sd-image-generate-models/resolve/main/embeddings/ng_deepnegative_v1_75t.pt"
+else
+    echo "embeddings/ng_deepnegative_v1_75t.pt 파일이 이미 존재합니다. 건너뜁니다."
+fi
 
+if [ ! -f "embeddings/easynegative.pt" ]; then
+    curl -L -o "embeddings/easynegative.pt" "https://huggingface.co/j5ng/sd-image-generate-models/resolve/main/embeddings/easynegative.pt"
+else
+    echo "embeddings/easynegative.pt 파일이 이미 존재합니다. 건너뜁니다."
+fi
 
 echo "Done!"
