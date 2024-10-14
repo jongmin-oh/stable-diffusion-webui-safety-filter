@@ -35,7 +35,7 @@ from contextlib import closing
 from modules.progress import create_task_id, add_task_to_queue, start_task, finish_task, current_task
 
 # custom
-from scripts.nsfw_censor import apply_nsfw_filter
+from scripts.nsfw_censor import nsfw_detect
 
 def script_name_to_index(name, scripts):
     try:
@@ -493,7 +493,7 @@ class Api:
 
                     # NSFW 필터 적용
                     if enable_nsfw_detect:
-                        processed.images = apply_nsfw_filter(processed.images, threshold)
+                        processed.images = nsfw_detect(processed.images, threshold)
     
                     finish_task(task_id)
                 finally:
@@ -576,7 +576,7 @@ class Api:
 
                     # NSFW 필터 적용
                     if enable_nsfw_detect:
-                        processed.images = apply_nsfw_filter(processed.images, threshold)
+                        processed.images = nsfw_detect(processed.images, threshold)
 
                     finish_task(task_id)
                 finally:
