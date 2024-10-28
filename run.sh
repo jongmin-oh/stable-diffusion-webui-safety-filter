@@ -1,1 +1,0 @@
-nohup ./webui.sh --listen --api --xformers --opt-sdp-attention --disable-nan-check &
