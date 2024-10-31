@@ -10,8 +10,6 @@ safety_model_id = "Falconsai/nsfw_image_detection"
 model = None
 processor = None
 
-warning_image = os.path.join("extensions", "warning.png")
-
 
 def nsfw_detect(images, threshold=0.5):
     global model, processor
@@ -28,11 +26,9 @@ def nsfw_detect(images, threshold=0.5):
     probabilities = F.softmax(logits, dim=1)
     nsfw_probs = probabilities[:, 1].tolist()
     
-    warning_img = Image.open(warning_image).convert("RGB")
-    
     for i, prob in enumerate(nsfw_probs):
         if prob > threshold:
-            resized_warning = warning_img.resize(images[0].size)
-            images[i] = resized_warning
+            black_image = Image.new('RGB', images[0].size, color='black')
+            images[i] = black_image
     
     return images
