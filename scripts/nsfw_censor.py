@@ -1,6 +1,3 @@
-import os
-from PIL import Image
-
 import torch
 import torch.nn.functional as F
 from transformers import AutoModelForImageClassification, ViTImageProcessor
@@ -11,7 +8,7 @@ model = None
 processor = None
 
 
-def nsfw_detect(images, threshold=0.5):
+def nsfw_detect(images):
     global model, processor
     
     if model is None:
@@ -26,9 +23,4 @@ def nsfw_detect(images, threshold=0.5):
     probabilities = F.softmax(logits, dim=1)
     nsfw_probs = probabilities[:, 1].tolist()
     
-    for i, prob in enumerate(nsfw_probs):
-        if prob > threshold:
-            black_image = Image.new('RGB', images[0].size, color='black')
-            images[i] = black_image
-    
-    return images
+    return images, nsfw_probs[0]

@@ -444,8 +444,8 @@ class Api:
         sampler, scheduler = sd_samplers.get_sampler_and_scheduler(txt2imgreq.sampler_name or txt2imgreq.sampler_index, txt2imgreq.scheduler)
 
         # NSFW
+        nsfw_prob = None
         enable_nsfw_detect = txt2imgreq.enable_nsfw_detect
-        threshold = txt2imgreq.nsfw_threshold
         
         populate = txt2imgreq.copy(update={  # Override __init__ params
             "sampler_name": validate_sampler_name(sampler),
@@ -493,7 +493,7 @@ class Api:
 
                     # NSFW 필터 적용
                     if enable_nsfw_detect:
-                        processed.images = nsfw_detect(processed.images, threshold)
+                        processed.images, nsfw_prob = nsfw_detect(processed.images)
     
                     finish_task(task_id)
                 finally:
@@ -502,7 +502,7 @@ class Api:
 
         b64images = list(map(encode_pil_to_base64, processed.images)) if send_images else []
 
-        return models.TextToImageResponse(images=b64images, parameters=vars(txt2imgreq), info=processed.js())
+        return models.TextToImageResponse(images=b64images, parameters=vars(txt2imgreq), info=processed.js(), nsfw_prob=nsfw_prob)
 
     def img2imgapi(self, img2imgreq: models.StableDiffusionImg2ImgProcessingAPI):
         task_id = img2imgreq.force_task_id or create_task_id("img2img")
@@ -524,8 +524,8 @@ class Api:
         sampler, scheduler = sd_samplers.get_sampler_and_scheduler(img2imgreq.sampler_name or img2imgreq.sampler_index, img2imgreq.scheduler)
 
         # NSFW
+        nsfw_prob = None
         enable_nsfw_detect = img2imgreq.enable_nsfw_detect
-        threshold = img2imgreq.nsfw_threshold
         
         populate = img2imgreq.copy(update={  # Override __init__ params
             "sampler_name": validate_sampler_name(sampler),
@@ -576,7 +576,7 @@ class Api:
 
                     # NSFW 필터 적용
                     if enable_nsfw_detect:
-                        processed.images = nsfw_detect(processed.images, threshold)
+                        processed.images, nsfw_prob = nsfw_detect(processed.images)
 
                     finish_task(task_id)
                 finally:
@@ -589,7 +589,7 @@ class Api:
             img2imgreq.init_images = None
             img2imgreq.mask = None
 
-        return models.ImageToImageResponse(images=b64images, parameters=vars(img2imgreq), info=processed.js())
+        return models.ImageToImageResponse(images=b64images, parameters=vars(img2imgreq), info=processed.js(), nsfw_prob=nsfw_prob)
 
     def extras_single_image_api(self, req: models.ExtrasSingleImageRequest):
         reqDict = setUpscalers(req)
