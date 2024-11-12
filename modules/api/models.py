@@ -109,7 +109,8 @@ StableDiffusionTxt2ImgProcessingAPI = PydanticModelGenerator(
         {"key": "alwayson_scripts", "type": dict, "default": {}},
         {"key": "force_task_id", "type": str, "default": None},
         {"key": "infotext", "type": str, "default": None},
-        {"key": "enable_nsfw_detect", "type": bool, "default": False}
+        {"key": "enable_nsfw_detect", "type": bool, "default": False},
+        {"key": "nsfw_detect_model", "type": str, "default": "falcon"}
     ]
 ).generate_model()
 
@@ -129,7 +130,8 @@ StableDiffusionImg2ImgProcessingAPI = PydanticModelGenerator(
         {"key": "alwayson_scripts", "type": dict, "default": {}},
         {"key": "force_task_id", "type": str, "default": None},
         {"key": "infotext", "type": str, "default": None},
-        {"key": "enable_nsfw_detect", "type": bool, "default": False}
+        {"key": "enable_nsfw_detect", "type": bool, "default": False},
+        {"key": "nsfw_detect_model", "type": str, "default": "falcon"}
     ]
 ).generate_model()
 

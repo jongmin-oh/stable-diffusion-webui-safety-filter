@@ -446,6 +446,7 @@ class Api:
         # NSFW
         nsfw_prob = None
         enable_nsfw_detect = txt2imgreq.enable_nsfw_detect
+        nsfw_detect_model = txt2imgreq.nsfw_detect_model
         
         populate = txt2imgreq.copy(update={  # Override __init__ params
             "sampler_name": validate_sampler_name(sampler),
@@ -465,7 +466,7 @@ class Api:
         args.pop('infotext', None)
         args.pop('enable_nsfw_detect', None)
         args.pop('nsfw_threshold', None)
-        
+        args.pop('nsfw_detect_model', None)
 
         script_args = self.init_script_args(txt2imgreq, self.default_script_arg_txt2img, selectable_scripts, selectable_script_idx, script_runner, input_script_args=infotext_script_args)
 
@@ -493,7 +494,7 @@ class Api:
 
                     # NSFW 필터 적용
                     if enable_nsfw_detect:
-                        processed.images, nsfw_prob = nsfw_detect(processed.images)
+                        processed.images, nsfw_prob = nsfw_detect(processed.images, nsfw_detect_model)
     
                     finish_task(task_id)
                 finally:
@@ -526,6 +527,7 @@ class Api:
         # NSFW
         nsfw_prob = None
         enable_nsfw_detect = img2imgreq.enable_nsfw_detect
+        nsfw_detect_model = img2imgreq.nsfw_detect_model
         
         populate = img2imgreq.copy(update={  # Override __init__ params
             "sampler_name": validate_sampler_name(sampler),
@@ -546,7 +548,7 @@ class Api:
         args.pop('alwayson_scripts', None)
         args.pop('infotext', None)
         args.pop('enable_nsfw_detect', None)
-        args.pop('nsfw_threshold', None)
+        args.pop('nsfw_detect_model', None)
 
         script_args = self.init_script_args(img2imgreq, self.default_script_arg_img2img, selectable_scripts, selectable_script_idx, script_runner, input_script_args=infotext_script_args)
 
@@ -576,7 +578,7 @@ class Api:
 
                     # NSFW 필터 적용
                     if enable_nsfw_detect:
-                        processed.images, nsfw_prob = nsfw_detect(processed.images)
+                        processed.images, nsfw_prob = nsfw_detect(processed.images, nsfw_detect_model)
 
                     finish_task(task_id)
                 finally:
