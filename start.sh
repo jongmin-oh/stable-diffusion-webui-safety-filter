@@ -6,5 +6,9 @@ nohup ./webui.sh --listen --api --xformers --opt-sdp-attention --disable-nan-che
 sleep 5  # 5초 대기
 nohup ./webui.sh --listen --api --xformers --opt-sdp-attention --disable-nan-check --port 7862 &
 
+sleep 5  # 5초 대기
+nohup ../stable-diffusion-webui-forge/webui.sh --listen --api --port 7863 &
+
+
 sleep 20
 nvidia-smi
