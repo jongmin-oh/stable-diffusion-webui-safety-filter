@@ -19,6 +19,13 @@ else
     echo "models/Stable-diffusion/blueboys2D_Merge_v30.safetensors 파일이 이미 존재합니다. 건너뜁니다."
 fi
 
+if [ ! -f "models/Stable-diffusion/NoobAI-XL-Vpred-v1.0.safetensors" ]; then
+    curl -L -o "models/Stable-diffusion/NoobAI-XL-Vpred-v1.0.safetensors" "https://huggingface.co/j5ng/sd-image-generate-models/resolve/main/checkpoints/NoobAI-XL-Vpred-v1.0.safetensors"
+else
+    echo "models/Stable-diffusion/NoobAI-XL-Vpred-v1.0.safetensors 파일이 이미 존재합니다. 건너뜁니다."
+fi
+
+
 # Lora
 mkdir -p "models/Lora"
 if [ ! -f "models/Lora/GoodHands-beta2.safetensors" ]; then
@@ -31,6 +38,12 @@ if [ ! -f "models/Lora/koreanDollLikeness_v15.safetensors" ]; then
     curl -L -o "models/Lora/koreanDollLikeness_v15.safetensors" "https://huggingface.co/j5ng/sd-image-generate-models/resolve/main/Lora/koreanDollLikeness_v15.safetensors"
 else
     echo "models/Lora/koreanDollLikeness_v15.safetensors 파일이 이미 존재합니다. 건너뜁니다."
+fi
+
+if [ ! -f "models/Lora/KoreanStyleSDXLvpred10.safetensors" ]; then
+    curl -L -o "models/Lora/KoreanStyleSDXLvpred10.safetensors" "https://huggingface.co/j5ng/sd-image-generate-models/resolve/main/Lora/KoreanStyleSDXLvpred10.safetensors"
+else
+    echo "models/Lora/KoreanStyleSDXLvpred10.safetensors 파일이 이미 존재합니다. 건너뜁니다."
 fi
 
 # VAE
